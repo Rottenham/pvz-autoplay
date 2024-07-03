@@ -36,7 +36,7 @@ void smart_cherry(int wave) {
     At(now + 100) A(best_row, 9);
 }
 
-ACoroutine handle_inactivated()
+Coroutine handle_inactivated()
 {
     int wave = NowWave();
     co_await [=] { return NowWave() > wave || NowTime(wave) >= 1110; };
@@ -65,7 +65,7 @@ TickRunner smart_blover_runner;
 void smart_blover()
 {
     if (IsSeedUsable(BLOVER)) {
-        for (auto& z : aAliveZombieFilter) {
+        for (auto& z : aliveZombieFilter) {
             if (z.Type() == BALLOON_ZOMBIE && z.Abscissa() < 100) {
                 ACard(BLOVER, 6, 1);
                 return;
@@ -157,7 +157,7 @@ OnAfterInject({
     EnterGame();
 });
 
-AOnEnterFight({
+OnEnterFight({
     flag_count += 2;
     total_level_stat[to_string(level)]++;
 });
@@ -183,15 +183,15 @@ void on_fail()
     if (PAUSE_ON_FAIL) {
         SetAdvancedPause(true);
     } else {
-        ABackToMain(false);
-        AEnterGame();
+        BackToMain(false);
+        EnterGame();
     }
 }
 
 OnExitFight({
     if (GetPvzBase()->GameUi() == AAsm::ZOMBIES_WON) {
         Zombie* zombie = nullptr;
-        for(auto& z : aAliveZombieFilter) {
+        for(auto& z : aliveZombieFilter) {
             if (zombie == nullptr || z.Abscissa() < zombie->Abscissa()) {
                 zombie = &z;
             }

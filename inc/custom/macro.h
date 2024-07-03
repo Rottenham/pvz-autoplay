@@ -126,15 +126,15 @@
 #define TALL_NUT_ZOMBIE ATALL_NUT_ZOMBIE
 #define GIGA_GARGANTUAR AGIGA_GARGANTUAR
 
-#define Coroutine ACoroutine
-#define IsZombieExist AIsZombieExist
-#define alivePlantFilter aAlivePlantFilter
 #define alivePlaceItemFilter aAlivePlaceItemFilter
+#define alivePlantFilter aAlivePlantFilter
 #define aliveZombieFilter aAliveZombieFilter
+#define BackToMain ABackToMain
 #define cobManager aCobManager
 #define CoLaunch ACoLaunch
 #define Connect AConnect
 #define Console AConsole
+#define Coroutine ACoroutine
 #define EnterGame AEnterGame
 #define GetCardIndex AGetCardIndex
 #define GetMainObject AGetMainObject
@@ -147,6 +147,7 @@
 #define Grid AGrid
 #define iceFiller aIceFiller
 #define IsSeedUsable AIsSeedUsable
+#define IsZombieExist AIsZombieExist
 #define Logger ALogger
 #define LogLevel ALogLevel
 #define MaidCheats AMaidCheats
@@ -164,6 +165,7 @@
 #define plantFixer aPlantFixer
 #define PlantFixer APlantFixer
 #define PlantType APlantType
+#define Position APosition
 #define PvzStruct APvzStruct
 #define RangeIn ARangeIn
 #define ReloadMode AReloadMode
@@ -177,7 +179,6 @@
 #define TickRunner ATickRunner
 #define Time ATime
 #define Zombie AZombie
-#define Position APosition
 
 // SimpleAvZ Macros
 #define CHERRY CHERRY_BOMB

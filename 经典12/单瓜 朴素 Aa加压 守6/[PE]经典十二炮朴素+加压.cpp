@@ -147,7 +147,7 @@ OnAfterInject({
     EnterGame();
 });
 
-AOnEnterFight({
+OnEnterFight({
     flag_count += 2;
     total_level_stat[to_string(level)]++;
 });
@@ -174,15 +174,15 @@ void on_fail()
     if (PAUSE_ON_FAIL) {
         SetAdvancedPause(true);
     } else {
-        ABackToMain(false);
-        AEnterGame();
+        BackToMain(false);
+        EnterGame();
     }
 }
 
 OnExitFight({
     if (GetPvzBase()->GameUi() == AAsm::ZOMBIES_WON) {
         Zombie* zombie = nullptr;
-        for(auto& z : aAliveZombieFilter) {
+        for(auto& z : aliveZombieFilter) {
             if (zombie == nullptr || z.Abscissa() < zombie->Abscissa()) {
                 zombie = &z;
             }

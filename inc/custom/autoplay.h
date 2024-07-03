@@ -7,6 +7,42 @@
 #include "macro.h"
 #include "mod.h"
 
+namespace AutoplayInternal {
+
+std::random_device rd;
+std::mt19937 gen(rd());
+
+uint32_t get_random_seed()
+{
+    std::uniform_int_distribution<uint32_t> dist(0, UINT32_MAX);
+    return dist(gen);
+}
+
+std::pair<int, int> get_plant_def(int col, PlantType type)
+{
+    int x = 40 + (col - 1) * 80;
+    switch (type) {
+    case PUMPKIN:
+        return {x + 20, x + 80};
+    case TALL_NUT:
+        return {x + 30, x + 70};
+    case COB_CANNON:
+        return {x + 20, x + 120};
+    default:
+        return {x + 30, x + 50};
+    }
+}
+
+float hammer_rate(Zombie* zombie)
+{
+    auto animation_code = zombie->MRef<uint16_t>(0x118);
+    auto animation_array = GetPvzBase()->AnimationMain()->AnimationOffset()->AnimationArray();
+    auto circulation_rate = animation_array[animation_code].CirculationRate();
+    return circulation_rate - 0.644f;
+}
+
+};
+
 enum class Level {
     Slow,
     Variable,
@@ -145,18 +181,6 @@ struct std::formatter<Record> : std::formatter<string> {
     }
 };
 
-namespace AutoplayInternal {
-
-std::random_device rd;
-std::mt19937 gen(rd());
-
-uint32_t get_random_seed()
-{
-    std::uniform_int_distribution<uint32_t> dist(0, UINT32_MAX);
-    return dist(gen);
-}
-};
-
 std::string set_random_seed()
 {
     auto seed = AutoplayInternal::get_random_seed();
@@ -204,4 +228,22 @@ std::string get_prev_wave_stat(int prev_wave_num)
         oss << std::format("w{} 共{}cs", w, NowTime(w) - NowTime(w + 1));
     }
     return oss.str();
+}
+
+// [0, 0.644], if no imminent hammer return 0, otherwise return min circulation rate until hammer
+float get_imminent_hammer_rate(Grid pos, PlantType type = PEASHOOTER)
+{
+    float min_hammer_rate = 999.0f;
+    auto plant_def = AutoplayInternal::get_plant_def(pos.col, type);
+    for (auto& z : aliveZombieFilter) {
+        if (RangeIn(z.Type(), {GARG, GIGA}) && z.IsHammering() && z.Row() + 1 == pos.row) {
+            auto rate = AutoplayInternal::hammer_rate(&z);
+            if (rate < 0) {
+                std::pair<int, int> zombie_atk = {static_cast<int>(z.Abscissa()) - 30, static_cast<int>(z.Abscissa()) + 59};
+                if (std::max(zombie_atk.first, plant_def.first) <= std::min(zombie_atk.second, plant_def.second))
+                    min_hammer_rate = std::min(min_hammer_rate, -rate);
+            }
+        }
+    }
+    return min_hammer_rate == 999.0f ? 0.0f : min_hammer_rate;
 }
