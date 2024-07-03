@@ -6,7 +6,7 @@
 #include "dsl/shorthand_240205.h"
 
 /**** 挂机基础设定 ****/
-const int FLAG_GOAL = 10000;
+constexpr int FLAG_GOAL = 10000;
 constexpr auto GAME_DAT_PATH = "C:\\ProgramData\\PopCap Games\\PlantsVsZombies\\userdata\\game1_13.dat";
 constexpr auto TEMP_DAT_PATH = "C:\\Users\\cresc\\Desktop\\temp\\tmp.dat";
 const std::vector<Grid> COB_LIST = {{1, 5}, {2, 5}, {3, 7}, {4, 7}, {5, 5}, {6, 5}};
@@ -19,9 +19,60 @@ auto start = std::chrono::high_resolution_clock::now();
 int sl_count = 0;
 int flag_count = 0;
 Level level;
-Stat total_level_stat("总"), N_level_stat("N"), N_pos_stat("N位置");
+Stat total_level_stat("总"), N_level_stat("N"), N_pos_stat("N位置"),
+    delay_PP_stat("延迟PP");
 
 void on_fail();
+
+void smart_cherry(int wave) {
+    std::array<int, 6> count = {};
+    for (auto& z : aliveZombieFilter) {
+        if (z.AtWave() + 1 == wave) {
+            if (z.Type() == GIGA) count[z.Row()] += 18;
+            else if (z.Type() == GARG) count[z.Row()] += 12;
+        }
+    }
+    int best_row = (count[0] + count[1] > count[4] + count[5]) ? 2 : 5;
+    At(now + 100) A(best_row, 9);
+}
+
+ACoroutine handle_inactivated()
+{
+    int wave = NowWave();
+    co_await [=] { return NowWave() > wave || NowTime(wave) >= 1110; };
+    if (NowWave() > wave) {
+        At(Time(NowWave(), 341)) N({{3, 9}, {4, 9}});
+        logger.Warning("第 # 波延迟至 #cs 时刷新, 补核.", wave, NowTime(wave));
+        N_level_stat[to_string(level)]++;
+        At(Time(NowWave(), 341 - 10)) Do {
+            auto ptrs = GetPlantPtrs({{3, 9}, {4, 9}}, DOOM);
+            if (ptrs[0] != nullptr) N_pos_stat["3-9"]++;
+            else if (ptrs[1] != nullptr) N_pos_stat["4-9"]++;
+            else {
+                N_pos_stat["failed"]++;
+                logger.Error("并未放核!");
+            }
+        };
+    } else {
+        cobManager.Fire({{2, 8.75}, {5, 8.75}});
+        delay_PP_stat++;
+        co_await [=] { return NowWave() > wave; };
+        logger.Warning("第 # 波延迟至 #cs 时刷新, 于 1100cs 预判下一波PP.", wave, NowTime(wave));
+    }
+}
+
+TickRunner smart_blover_runner;
+void smart_blover()
+{
+    if (IsSeedUsable(BLOVER)) {
+        for (auto& z : aAliveZombieFilter) {
+            if (z.Type() == BALLOON_ZOMBIE && z.Abscissa() < 100) {
+                ACard(BLOVER, 6, 1);
+                return;
+            }
+        }
+    }
+}
 
 void Script()
 {
@@ -30,12 +81,16 @@ void Script()
     logger.SetLevel({LogLevel::DEBUG, LogLevel::ERROR, LogLevel::WARNING});
     SetInternalLogger(logger);
     SetReloadMode(ReloadMode::MAIN_UI_OR_FIGHT_UI);
-    SelectCards({LILY, DOOM, ICE, COFFEE, PUFF, M_PUFF, SCAREDY, POT, 40, 41}, 0);
+    SelectCards({LILY, DOOM, ICE, COFFEE, CHERRY, BLOVER, 42, 43, 44, 45}, 0);
     
     auto zombie_type_list = GetZombieTypeList();
     if (zombie_type_list[DANCING_ZOMBIE]) {
         MaidCheats::Dancing();
-        At(Time(20, 1109)) Do {MaidCheats::Stop(); };
+    } else {
+        MaidCheats::Stop();
+    }
+    if (zombie_type_list[BALLOON_ZOMBIE]) {
+        smart_blover_runner.Start(smart_blover);
     }
     DanceCheat(DanceCheatMode::FAST);
 
@@ -63,39 +118,29 @@ void Script()
     Connect('F', [] { SetGameSpeed(5); });
     Connect('G', [] { SetGameSpeed(1); });
 
-    OnWave(1_9, 11_19) At(341) PP();
-    OnWave(10) {
-        At(409) PP(9.2),
-        At(830 - 299) Do {
-            if (NowWave() == 10 && GetMainObject()->RefreshCountdown() > 200) {
-                At(now + 299) N({{3, 9},{4, 9}});
-                N_level_stat[to_string(level)]++;
-                At(now + 100) Do {
-                    auto ptrs = GetPlantPtrs({{3, 9}, {4, 9}}, DOOM);
-                    if (ptrs[0] != nullptr) N_pos_stat["3-9"]++;
-                    else if (ptrs[1] != nullptr) N_pos_stat["4-9"]++;
-                    else {
-                        N_pos_stat["failed"]++;
-                        logger.Warning("并未放核!");
-                    }
-                };
-            }
-        },
-    };
+    At(Time(1, 341)) PP();
+    At(Time(10, 341)) PP();
+    for (int w = 1; w <= 18; w++) {
+        if (w == 9) continue;
+        At(Time(w, 601 + 341)) PP(8.75);
+        At(Time(w, 781)) Do {
+            if (NowWave() == w) CoLaunch(handle_inactivated);
+        };
+    }
     OnWave(20) {
         At(0) I(1, 1),
         At(409) PP(9.2),
     };
-    if (zombie_type_list[DANCING_ZOMBIE]) {
-        C.SetCards({PUFF, M_PUFF, SCAREDY, POT});
-        At(Time(10, 100)) C(300);
-        At(Time(20, 100)) C(300);
+    if (zombie_type_list[GIGA] || zombie_type_list[GARG]) {
+        At(Time(10, 401 - 100)) Do {
+            smart_cherry(10);
+        };
     }
 
     for (auto wave : {9, 19, 20}) {
         for (int i = 1; i <= 3; i++) {
             At(Time(wave, 409 + i * 700 - 373)) Do {
-                if (NowWave() == wave && GetMainObject()->RefreshCountdown() > 200) {
+                if (NowWave() == wave) {
                     for (auto& zombie : aliveZombieFilter) {
                         if (zombie.Abscissa() > 400) {
                             At(now + 373) PP<RECOVER_FIRE>(8.5);
@@ -113,19 +158,20 @@ OnAfterInject({
 });
 
 AOnEnterFight({
-    if (flag_count > 0 && flag_count % 100 == 0) {
-        logger.Debug("#, #\n#, #", N_level_stat, N_pos_stat,
-                                   total_level_stat, get_time_estimate(flag_count, FLAG_GOAL, start));
-    }
-    if (flag_count % 100 == 0) {
-        logger.Debug(set_random_seed());
-    }
-    logger.Debug("阳光: #, #, #f, SL次数: # #", GetMainObject()->Sun(), to_string(level), flag_count, sl_count, get_timestamp());
     flag_count += 2;
     total_level_stat[to_string(level)]++;
 });
 
 OnBeforeScript({
+    if (flag_count > 0 && flag_count % 100 == 0) {
+        logger.Debug("#, #, #\n#, #", N_level_stat, N_pos_stat, delay_PP_stat,
+                                      total_level_stat, get_time_estimate(flag_count, FLAG_GOAL, start));
+    }
+    if (flag_count % 100 == 0) {
+        logger.Debug(set_random_seed());
+    }
+    logger.Debug("阳光: #, #, #f, SL次数: # #", GetMainObject()->Sun(), to_string(level), flag_count, sl_count, get_timestamp());
+    
     level = get_level();
     if (!PAUSE_ON_FAIL)
         std::filesystem::copy(GAME_DAT_PATH, TEMP_DAT_PATH + std::to_string(flag_count % 10),

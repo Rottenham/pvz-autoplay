@@ -148,6 +148,11 @@ OnAfterInject({
 });
 
 AOnEnterFight({
+    flag_count += 2;
+    total_level_stat[to_string(level)]++;
+});
+
+OnBeforeScript({
     if (flag_count > 0 && flag_count % 100 == 0) {
         logger.Debug("#, #\n#, #\n#, #", N_level_stat, N_pos_stat,
                                          smart_a_level_stat, smart_A_level_stat,
@@ -157,11 +162,7 @@ AOnEnterFight({
         logger.Debug(set_random_seed());
     }
     logger.Debug("阳光: #, #, #f, SL次数: # #", GetMainObject()->Sun(), to_string(level), flag_count, sl_count, get_timestamp());
-    flag_count += 2;
-    total_level_stat[to_string(level)]++;
-});
-
-OnBeforeScript({
+    
     level = get_level();
     if (!PAUSE_ON_FAIL)
         std::filesystem::copy(GAME_DAT_PATH, TEMP_DAT_PATH + std::to_string(flag_count % 10),
