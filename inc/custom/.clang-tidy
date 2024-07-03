@@ -1,0 +1,1 @@
+Checks: '-*,clang-analyzer-*,bugprone-*,misc-*,-misc-definitions-in-headers'
