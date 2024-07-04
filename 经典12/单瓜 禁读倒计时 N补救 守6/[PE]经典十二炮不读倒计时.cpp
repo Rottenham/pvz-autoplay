@@ -171,7 +171,6 @@ OnBeforeScript({
         logger.Debug(set_random_seed());
     }
     logger.Debug("阳光: #, #, #f, SL次数: # #", GetMainObject()->Sun(), to_string(level), flag_count, sl_count, get_timestamp());
-    
     level = get_level();
     if (!PAUSE_ON_FAIL)
         std::filesystem::copy(GAME_DAT_PATH, TEMP_DAT_PATH + std::to_string(flag_count % 10),

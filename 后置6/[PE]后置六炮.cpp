@@ -205,7 +205,7 @@ Coroutine fire_next_PP() {
 }
 
 void Script() {
-    if (flag_count > FLAG_GOAL) return;
+    if (flag_count >= FLAG_GOAL) return;
     EnableModsScoped(DisableItemDrop);
     logger.SetLevel({LogLevel::DEBUG, LogLevel::ERROR, LogLevel::WARNING});
     SetInternalLogger(logger);
