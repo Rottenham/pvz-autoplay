@@ -6,12 +6,13 @@
 #include "dsl/shorthand_240205.h"
 
 /**** 挂机基础设定 ****/
-const int FLAG_GOAL = 10000;
 constexpr auto GAME_DAT_PATH = "C:\\ProgramData\\PopCap Games\\PlantsVsZombies\\userdata\\game1_13.dat";
 constexpr auto TEMP_DAT_PATH = "C:\\Users\\cresc\\Desktop\\temp\\tmp.dat";
 const std::vector<Grid> COB_LIST = {{1, 5}, {2, 5}, {3, 7}, {4, 7}, {5, 5}, {6, 5}};
 constexpr bool SKIP_TICK = true;
 constexpr bool PAUSE_ON_FAIL = false;
+constexpr bool DEMO = false;
+constexpr int FLAG_GOAL = DEMO ? 50 : 10000;
 
 /**** 收集数据 ****/
 Logger<Console> logger;
@@ -25,12 +26,12 @@ void on_fail();
 
 void Script()
 {
-    if (flag_count > FLAG_GOAL) return;
+    if (flag_count >= FLAG_GOAL) return;
     EnableModsScoped(DisableItemDrop);
     logger.SetLevel({LogLevel::DEBUG, LogLevel::ERROR, LogLevel::WARNING});
     SetInternalLogger(logger);
     SetReloadMode(ReloadMode::MAIN_UI_OR_FIGHT_UI);
-    SelectCards({LILY, DOOM, ICE, COFFEE, PUFF, M_PUFF, SCAREDY, POT, 40, 41}, 0);
+    SelectCards({LILY, DOOM, ICE, COFFEE, PUFF, M_PUFF, SCAREDY, POT, 40, 41}, DEMO ? 8 : 0);
     
     auto zombie_type_list = GetZombieTypeList();
     if (zombie_type_list[DANCING_ZOMBIE]) {
@@ -39,7 +40,7 @@ void Script()
     }
     DanceCheat(DanceCheatMode::FAST);
 
-    if (SKIP_TICK)
+    if (SKIP_TICK && !DEMO)
         SkipTick([] {
             auto ptrs = GetPlantPtrs(COB_LIST, COB);
             for (size_t i = 0; i < ptrs.size(); i++) {
@@ -59,7 +60,7 @@ void Script()
             return true;
         });
     else
-        SetGameSpeed(5);
+        SetGameSpeed(DEMO ? 4 : 5);
     Connect('F', [] { SetGameSpeed(5); });
     Connect('G', [] { SetGameSpeed(1); });
 
@@ -123,18 +124,19 @@ OnBeforeScript({
                                    total_level_stat, get_time_estimate(flag_count, FLAG_GOAL, start));
     }
     if (flag_count % 100 == 0) {
-        logger.Debug(set_random_seed());
+        if (DEMO) set_seed_and_update(0x2486C3D9);
+        else logger.Debug(set_random_seed());
     }
     logger.Debug("阳光: #, #, #f, SL次数: # #", GetMainObject()->Sun(), to_string(level), flag_count, sl_count, get_timestamp());
     level = get_level();
-    if (!PAUSE_ON_FAIL)
+    if (!PAUSE_ON_FAIL && !DEMO)
         std::filesystem::copy(GAME_DAT_PATH, TEMP_DAT_PATH + std::to_string(flag_count % 10),
             std::filesystem::copy_options::overwrite_existing);
 });
 
 void on_fail()
 {
-    if (PAUSE_ON_FAIL) {
+    if (PAUSE_ON_FAIL || DEMO) {
         SetAdvancedPause(true);
     } else {
         BackToMain(false);
@@ -153,7 +155,7 @@ OnExitFight({
         logger.Error("种类为 # 的僵尸进家 (x=#), 僵尸获胜", zombie->Type(), zombie->Abscissa());
         on_fail();
     }
-    if (GetPvzBase()->GameUi() != AAsm::LEVEL_INTRO && !PAUSE_ON_FAIL) {
+    if (GetPvzBase()->GameUi() != AAsm::LEVEL_INTRO && !PAUSE_ON_FAIL && !DEMO) {
         sl_count++;
         std::filesystem::copy(TEMP_DAT_PATH + std::to_string(flag_count % 10),
             GAME_DAT_PATH, std::filesystem::copy_options::overwrite_existing);

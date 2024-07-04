@@ -5,7 +5,6 @@
 #include "dsl/shorthand_240205.h"
 
 /**** 挂机基础设定 ****/
-constexpr int FLAG_GOAL = 5000;
 constexpr auto GAME_DAT_PATH = "C:\\ProgramData\\PopCap Games\\PlantsVsZombies\\userdata\\game1_13.dat";
 constexpr auto TEMP_DAT_PATH = "C:\\Users\\cresc\\Desktop\\temp\\tmp.dat";
 const std::vector<Grid> COB_LIST = {{2, 4}, {3, 3}, {4, 3}, {5, 4}};
@@ -16,6 +15,8 @@ constexpr int SHORE_ROW_PUFF_COL = 6;
 const std::vector<Grid> PUFF_LIST = {{1, 6}, {6, 6}, {2, SHORE_ROW_PUFF_COL}, {5, SHORE_ROW_PUFF_COL}};
 constexpr bool SKIP_TICK = true;
 constexpr bool PAUSE_ON_FAIL = true;
+constexpr bool DEMO = false;
+constexpr int FLAG_GOAL = DEMO ? 50 : 10000;
 
 /**** 收集数据 ****/
 Logger<Console> logger;
@@ -210,7 +211,7 @@ void Script() {
     logger.SetLevel({LogLevel::DEBUG, LogLevel::ERROR, LogLevel::WARNING});
     SetInternalLogger(logger);
     SetReloadMode(ReloadMode::MAIN_UI_OR_FIGHT_UI);
-    SelectCards({PUMPKIN, LILY, FUME_SHROOM, GLOOM_SHROOM, COFFEE, BLOVER, ICE, PUFF, M_PUFF, SUNFLOWER}, 0);
+    SelectCards({PUMPKIN, LILY, FUME_SHROOM, GLOOM_SHROOM, COFFEE, BLOVER, ICE, PUFF, M_PUFF, SUNFLOWER}, DEMO ? 8 : 0);
 
     remove_ladder();
     fix_pumpkin_runner.Start([=] { fix_pumpkin(2666); });
@@ -237,7 +238,7 @@ void Script() {
         At(Time(20, 0)) Do { MaidCheats::Stop(); };
     }
 
-    if (SKIP_TICK)
+    if (SKIP_TICK && !DEMO)
         SkipTick([] {
             auto ptrs = GetPlantPtrs(COB_LIST, COB);
             for (size_t i = 0; i < ptrs.size(); i++) {
@@ -301,7 +302,7 @@ OnBeforeScript({
     }
     level = get_level();
     logger.Debug("阳光: #, #, #f, SL次数: # #", GetMainObject()->Sun(), to_string(level), flag_count, sl_count, get_timestamp());
-    if (!PAUSE_ON_FAIL)
+    if (!PAUSE_ON_FAIL && !DEMO)
         std::filesystem::copy(GAME_DAT_PATH, TEMP_DAT_PATH + std::to_string(flag_count % 10),
             std::filesystem::copy_options::overwrite_existing);
 });
@@ -313,7 +314,7 @@ void on_fail()
     std::ostringstream oss;
     for (auto& r : get_avoid_PV_rows()) oss << r << ",";
     logger.Debug("躲撑杆行: #", oss.str());
-    if (PAUSE_ON_FAIL) {
+    if (PAUSE_ON_FAIL || DEMO) {
         logger.Error("游戏暂停.");
         SetAdvancedPause(true);
     } else {
@@ -333,7 +334,7 @@ OnExitFight({
         logger.Error("种类为 # 的僵尸进家 (x=#), 僵尸获胜", zombie->Type(), zombie->Abscissa());
         on_fail();
     }
-    if (GetPvzBase()->GameUi() != AAsm::LEVEL_INTRO && !PAUSE_ON_FAIL) {
+    if (GetPvzBase()->GameUi() != AAsm::LEVEL_INTRO && !PAUSE_ON_FAIL && !DEMO) {
         sl_count++;
         std::filesystem::copy(TEMP_DAT_PATH + std::to_string(flag_count % 10),
             GAME_DAT_PATH, std::filesystem::copy_options::overwrite_existing);
