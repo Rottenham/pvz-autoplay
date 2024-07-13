@@ -82,7 +82,7 @@ void Script()
     logger.SetLevel({LogLevel::DEBUG, LogLevel::ERROR, LogLevel::WARNING});
     SetInternalLogger(logger);
     SetReloadMode(ReloadMode::MAIN_UI_OR_FIGHT_UI);
-    SelectCards({LILY, DOOM, ICE, COFFEE, CHERRY, BLOVER, 42, 43, 44, 45}, DEMO ? 8 : 0);
+    SelectCards({LILY, DOOM, ICE, COFFEE, CHERRY, BLOVER}, DEMO ? 8 : 0);
     
     auto zombie_type_list = GetZombieTypeList();
     if (zombie_type_list[DANCING_ZOMBIE]) {

@@ -58,7 +58,7 @@ void Script()
     logger.SetLevel({LogLevel::DEBUG, LogLevel::ERROR, LogLevel::WARNING});
     SetInternalLogger(logger);
     SetReloadMode(ReloadMode::MAIN_UI_OR_FIGHT_UI);
-    SelectCards({LILY, DOOM, ICE, COFFEE, SQUASH, CHERRY, 40, 41, 42, 43}, DEMO ? 8 : 0);
+    SelectCards({LILY, DOOM, ICE, COFFEE, SQUASH, CHERRY}, DEMO ? 8 : 0);
     
     if (GetZombieTypeList()[DANCING_ZOMBIE]) {
         MaidCheats::Dancing();

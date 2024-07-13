@@ -57,7 +57,7 @@ void Script() {
     logger.SetLevel({LogLevel::DEBUG, LogLevel::ERROR, LogLevel::WARNING});
     SetInternalLogger(logger);
     SetReloadMode(ReloadMode::MAIN_UI_OR_FIGHT_UI);
-    SelectCards({PUMPKIN, LILY, FUME_SHROOM, GLOOM_SHROOM, COFFEE, BLOVER, 0, 1, 2, 3}, DEMO ? 8 : 0);
+    SelectCards({PUMPKIN, LILY, FUME_SHROOM, GLOOM_SHROOM, COFFEE, BLOVER}, DEMO ? 8 : 0);
     
     plantFixer.Start(PUMPKIN, {}, 2666);
     MaidCheats::Dancing();
