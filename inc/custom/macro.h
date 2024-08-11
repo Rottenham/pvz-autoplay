@@ -175,13 +175,14 @@
 #define SetGameSpeed ASetGameSpeed
 #define SetInternalLogger ASetInternalLogger
 #define SetReloadMode ASetReloadMode
+#define SetWavelength ASetWavelength
+#define SetZombieMode ASetZombieMode
 #define SetZombies ASetZombies
 #define SkipTick ASkipTick
 #define TickRunner ATickRunner
 #define Time ATime
 #define Zombie AZombie
 #define ZombieType AZombieType
-#define SetZombieMode ASetZombieMode
 
 // SimpleAvZ Macros
 #define CHERRY CHERRY_BOMB

@@ -1,7 +1,5 @@
 #pragma once
 
-#include "avz_pvz_struct.h"
-#include "libavz.h"
 #include "macro.h"
 
 void set_level(int level)
