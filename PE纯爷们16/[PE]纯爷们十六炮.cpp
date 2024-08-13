@@ -1,6 +1,6 @@
-#include <avz.h>
-#include <dsl/shorthand.h>
 #include <filesystem>
+
+#include "dsl/shorthand_240205.h"
 #include "custom/lib.h"
 #include "mod/mod.h"
 #include "DanceCheat/DanceCheat.h"
@@ -11,7 +11,7 @@ constexpr auto GAME_DAT_PATH = "C:\\ProgramData\\PopCap Games\\PlantsVsZombies\\
 constexpr auto TEMP_DAT_PATH = "C:\\Users\\cresc\\Desktop\\temp\\tmp.dat";
 const std::vector<Grid> SAFE_COB_LIST = {{1, 5}, {2, 5}, {5, 5}, {6, 5}, {3, 7}, {4, 7}};
 const std::vector<Grid> UNSAFE_COB_LIST = {{1, 1}, {2, 1}, {5, 1}, {6, 1}};
-constexpr AutoplayMode MODE = AutoplayMode::SKIPTICK;
+constexpr AutoplayMode MODE = AutoplayMode::DEMO;
 constexpr int FLAG_GOAL = MODE == AutoplayMode::DEMO ? 50 : 10000;
 const std::vector<std::pair<int, int>> FIX_COB_THRES_BY_SUN = {{0, 160}, {4000, 260}};
 
@@ -152,7 +152,7 @@ TickRunner cob_hp_drawer;
 void draw_cob_hp()
 {
     for (auto& p : GetPlantPtrs(UNSAFE_COB_LIST, COB)) {
-        if (p->Hp() < p->HpMax())
+        if (p != nullptr)
             painter.Draw(Text(std::format("HP: {}", p->Hp()), p->Abscissa(), p->Ordinate()));
     }
 }
@@ -160,7 +160,8 @@ void draw_cob_hp()
 void Script()
 {
     if (flag_count > FLAG_GOAL) {
-        notify("测试完成");
+        if (MODE == AutoplayMode::SKIPTICK)
+            notify("测试完成");
         return;
     }
     EnableModsScoped(DisableItemDrop);
@@ -317,7 +318,7 @@ void Script()
 }
 
 OnAfterInject({
-    if (std::filesystem::exists(INIT_DAT_PATH))
+    if (MODE != AutoplayMode::DEMO && std::filesystem::exists(INIT_DAT_PATH))
         std::filesystem::copy(INIT_DAT_PATH, GAME_DAT_PATH, std::filesystem::copy_options::overwrite_existing);
     EnterGame();
 });
@@ -331,11 +332,15 @@ OnBeforeScript({
         logger.Debug("#, #, 每#f换炮, #\n#, #\n#, #", cob_fix_stat, cob_fix_count, cob_fix_frequency, ash_stat,
                                                      giga_level_hp_loss, non_giga_level_hp_loss,
                                                      total_level_stat, time_estimate);
-        if (flag_count % 2000 == 0)
+        if (MODE == AutoplayMode::SKIPTICK && flag_count % 2000 == 0)
             notify(std::format("{}f, SL次数: {}, {}", flag_count, sl_count, time_estimate));
     }
-    if (flag_count % 100 == 0)
-        logger.Debug(set_random_seed());
+    if (flag_count % 100 == 0) {
+        if (MODE == AutoplayMode::DEMO)
+            set_seed_and_update(0x2486C3D9);
+        else
+            logger.Debug(set_random_seed());
+    }
     level = get_level();
     zombie_type_list = GetZombieTypeList();
     logger.Debug("阳光: #, ##, #f, SL次数: # #", GetMainObject()->Sun(), level, zombie_type_list[BUNGEE_ZOMBIE] ? "*" : "",
@@ -370,7 +375,8 @@ void print_fail_stats() {
 }
 
 void pause() {
-    notify("测试中止");
+    if (MODE == AutoplayMode::SKIPTICK)
+        notify("测试中止");
     print_fail_stats();
     stop_skip_tick = true;
     SetAdvancedPause(true);

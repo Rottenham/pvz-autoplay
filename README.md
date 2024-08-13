@@ -19,6 +19,6 @@ AvZ2 240510
 
 This project includes code from [vector-wlc/AsmVsZombies](https://github.com/vector-wlc/AsmVsZombies) and [lmintlcx/pvztools](https://github.com/lmintlcx/pvztools), which are licensed under the GNU General Public License version 3 (GPLv3).
 
-Original author(s): vector-wlc, lmintlcx.
+Original author(s): vector-wlc, lmintlcx, alumkal.
 
 This project, by Crescendo (2024), is also licensed under GPLv3. A copy of the GPLv3 license is included in this repository.
