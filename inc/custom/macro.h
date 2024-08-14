@@ -127,10 +127,6 @@
 #define GIGA_GARGANTUAR AGIGA_GARGANTUAR
 
 #define AliveFilter AAliveFilter
-#define StrToWstr AStrToWstr
-#define Text AText
-#define painter aPainter
-#define RemovePlant ARemovePlant
 #define alivePlaceItemFilter aAlivePlaceItemFilter
 #define alivePlantFilter aAlivePlantFilter
 #define aliveZombieFilter aAliveZombieFilter
@@ -157,7 +153,6 @@
 #define LogLevel ALogLevel
 #define MaidCheats AMaidCheats
 #define NowDelayTime ANowDelayTime
-#define Timeline ATimeline
 #define NowTime ANowTime
 #define NowWave ANowWave
 #define OnAfterInject AOnAfterInject
@@ -168,6 +163,7 @@
 #define OnBeforeTick AOnBeforeTick
 #define OnEnterFight AOnEnterFight
 #define OnExitFight AOnExitFight
+#define painter aPainter
 #define Plant APlant
 #define plantFixer aPlantFixer
 #define PlantFixer APlantFixer
@@ -176,6 +172,7 @@
 #define PvzStruct APvzStruct
 #define RangeIn ARangeIn
 #define ReloadMode AReloadMode
+#define RemovePlant ARemovePlant
 #define Script AScript
 #define SelectCards ASelectCards
 #define SetAdvancedPause ASetAdvancedPause
@@ -186,8 +183,11 @@
 #define SetZombieMode ASetZombieMode
 #define SetZombies ASetZombies
 #define SkipTick ASkipTick
+#define StrToWstr AStrToWstr
+#define Text AText
 #define TickRunner ATickRunner
 #define Time ATime
+#define Timeline ATimeline
 #define Zombie AZombie
 #define ZombieType AZombieType
 
