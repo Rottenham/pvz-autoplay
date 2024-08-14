@@ -1,5 +1,8 @@
 #pragma once
 
+#include <cstdlib>
+#include <filesystem>
+
 #include "macro.h"
 
 namespace SharedInternal {
@@ -28,3 +31,31 @@ float hammer_rate(Zombie* zombie)
 }
 
 };
+
+template <template <typename, typename...> class Container, typename T, typename... Args>
+std::string Concat(const Container<T, Args...>& container, const std::string& sep = ",")
+{
+    std::ostringstream oss;
+    bool first = true;
+    for (const auto& val : container) {
+        if (first) {
+            first = false;
+        } else {
+            oss << sep;
+        }
+        oss << std::format("{}", val);
+    }
+    return oss.str();
+}
+
+template <typename T>
+bool Contains(const std::vector<T>& vec, const T& elem)
+{
+    return std::find(vec.begin(), vec.end(), elem) != vec.end();
+}
+
+void notify(const std::string& msg = ".")
+{
+    if (std::filesystem::exists("notify.bat"))
+        _wsystem(std::format(L".\\notify.bat \"{}\"", StrToWstr(msg)).c_str());
+}

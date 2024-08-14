@@ -3,15 +3,9 @@
 #include "macro.h"
 #include "shared.h"
 
-Zombie* zombie_exist(std::function<bool(const Zombie&)> predicate)
-{
-    for (auto& z : aliveZombieFilter) {
-        if (predicate(z)) {
-            return &z;
-        }
-    }
-    return nullptr;
-}
+#define zombie_filter(...) (AliveFilter<Zombie>([=](Zombie* z) { return __VA_ARGS__; }))
+#define zombie_exist(...) (!zombie_filter(__VA_ARGS__).Empty())
+#define zombie_count(...) (zombie_filter(__VA_ARGS__).Count())
 
 // [0, 0.644], if no imminent hammer return 0, otherwise return min circulation rate until hammer
 float get_imminent_hammer_rate(Grid pos, PlantType type = PEASHOOTER)

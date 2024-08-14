@@ -11,7 +11,7 @@ constexpr auto GAME_DAT_PATH = "C:\\ProgramData\\PopCap Games\\PlantsVsZombies\\
 constexpr auto TEMP_DAT_PATH = "C:\\Users\\cresc\\Desktop\\temp\\tmp.dat";
 const std::vector<Grid> SAFE_COB_LIST = {{1, 5}, {2, 5}, {5, 5}, {6, 5}, {3, 7}, {4, 7}};
 const std::vector<Grid> UNSAFE_COB_LIST = {{1, 1}, {2, 1}, {5, 1}, {6, 1}};
-constexpr AutoplayMode MODE = AutoplayMode::DEMO;
+constexpr AutoplayMode MODE = AutoplayMode::SKIPTICK;
 constexpr int FLAG_GOAL = MODE == AutoplayMode::DEMO ? 50 : 10000;
 const std::vector<std::pair<int, int>> FIX_COB_THRES_BY_SUN = {{0, 160}, {4000, 260}};
 
@@ -39,7 +39,7 @@ Coroutine fix_cob() {
     for (auto [sun, thres] : FIX_COB_THRES_BY_SUN)
         if (GetMainObject()->Sun() >= sun)
             hp_thres = thres;
-    for (auto [p, i] : GetPlantPtrsI(UNSAFE_COB_LIST, COB)) {
+    for (auto p : GetPlantPtrs(UNSAFE_COB_LIST, COB)) {
         if (p->Hp() <= hp_thres) {
             cobs_to_fix.push_back({p->Hp(), {p->Row() + 1, p->Col() + 1}});
         }
@@ -74,22 +74,6 @@ Coroutine fix_cob() {
     }
 }
 
-bool remaining_zombie_exist() {
-    for (auto& z : aliveZombieFilter) {
-        if (z.Abscissa() > 400)
-            return true;
-    }
-    return false;
-}
-
-bool threatening_giga_exist() {
-    for (auto& z : aliveZombieFilter) {
-        if (z.Type() == GIGA && z.Hp() > 1800)
-            return true;
-    }
-    return false;
-}
-
 std::unordered_map<std::string, Timeline> states;
 
 Timeline Transition(int wavelength, std::string delayed, std::string activated, std::string no_garg, std::string finish, bool ignore_wavelength_warning = false) {
@@ -114,7 +98,7 @@ Timeline Transition(int wavelength, std::string delayed, std::string activated, 
             next_state = &finish;
             intent = "收尾";
         }
-        else if (!no_garg.empty() && level == Level::Variable && giga_count >= 50 && !threatening_giga_exist()) {
+        else if (!no_garg.empty() && level == Level::Variable && giga_count >= 50 && !zombie_exist(z->Type() == GIGA && z->Hp() > 1800)) {
             next_state = &no_garg;
             intent = "转快";
         }
@@ -141,7 +125,7 @@ Timeline Transition(int wavelength, std::string delayed, std::string activated, 
 Coroutine finish() {
     while (true) {
         co_await [=] { return cobManager.GetUsableList().size() >= 2; };
-        if (!remaining_zombie_exist())
+        if (!zombie_exist(z->Abscissa() > 400))
             co_return;
         cobManager.Fire({{2, 9}, {5, 9}});
         co_await NowDelayTime(376);
@@ -292,12 +276,8 @@ void Script()
     Connect('F', [] { SetGameSpeed(5); });
     Connect('G', [] { SetGameSpeed(1); });
 
-    OnWave(1_20) At(0) Do {
-        for (auto& z : aliveZombieFilter) {
-            if (z.Type() == GIGA && z.ExistTime() == 0)
-                giga_count++;
-        }
-    };
+    OnWave(1_20) At(0) Do { giga_count += zombie_count(z->Type() == GIGA && z->ExistTime() == 0); };
+
     OnWave(1) At(-599) Do {
         for (auto [p, i] : GetPlantPtrsI(UNSAFE_COB_LIST, COB)) {
             init_cob_hp[i] = p == nullptr ? 0 : p->Hp();
@@ -356,7 +336,7 @@ void print_fail_stats() {
     std::array<Zombie*, 2> zombies{};
     for (auto& z : aliveZombieFilter) {
         int idx = z.Abscissa() <= 400 ? 0 : 1;
-        if (zombies[idx] == nullptr || z.Abscissa() + z.AttackAbscissa() < zombies[idx] ->Abscissa() + zombies[idx] ->AttackAbscissa())
+        if (zombies[idx] == nullptr || z.Abscissa() + z.AttackAbscissa() < zombies[idx]->Abscissa() + zombies[idx]->AttackAbscissa())
             zombies[idx] = &z;
     }
     int idx = 0;

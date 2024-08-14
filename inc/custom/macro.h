@@ -126,6 +126,11 @@
 #define TALL_NUT_ZOMBIE ATALL_NUT_ZOMBIE
 #define GIGA_GARGANTUAR AGIGA_GARGANTUAR
 
+#define AliveFilter AAliveFilter
+#define StrToWstr AStrToWstr
+#define Text AText
+#define painter aPainter
+#define RemovePlant ARemovePlant
 #define alivePlaceItemFilter aAlivePlaceItemFilter
 #define alivePlantFilter aAlivePlantFilter
 #define aliveZombieFilter aAliveZombieFilter
@@ -151,6 +156,8 @@
 #define Logger ALogger
 #define LogLevel ALogLevel
 #define MaidCheats AMaidCheats
+#define NowDelayTime ANowDelayTime
+#define Timeline ATimeline
 #define NowTime ANowTime
 #define NowWave ANowWave
 #define OnAfterInject AOnAfterInject

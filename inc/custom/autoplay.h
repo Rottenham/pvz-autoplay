@@ -38,9 +38,18 @@ std::string to_string(Level level)
     case Level::Fast:
         return "快";
     default:
-        assert(false && "unreachable");
+        throw "unreachable";
     }
 }
+
+template <>
+struct std::formatter<Level> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(Level level, FormatContext& ctx) const
+    {
+        return std::formatter<std::string>::format(to_string(level), ctx);
+    }
+};
 
 Level get_level()
 {
@@ -102,6 +111,12 @@ public:
         return oss.str();
     }
 
+    int val() const
+    {
+        auto it = stats.find("");
+        return (it != stats.end()) ? it->second : 0;
+    }
+
 private:
     std::map<std::string, int> stats;
     std::string name;
@@ -118,7 +133,7 @@ struct std::formatter<Stat> : std::formatter<string> {
 
 class Record {
 public:
-    explicit Record(const std::string& name, size_t max_record_num)
+    explicit Record(const std::string& name, int max_record_num = -1)
         : name(name)
         , max_record_num(max_record_num)
     {
@@ -130,6 +145,11 @@ public:
             records.pop_front();
         }
         records.push_back(record);
+    }
+
+    void clear()
+    {
+        records.clear();
     }
 
     std::string to_string() const
@@ -151,7 +171,7 @@ public:
 private:
     std::deque<std::string> records;
     std::string name;
-    size_t max_record_num;
+    int max_record_num;
 };
 
 template <>
@@ -217,4 +237,13 @@ std::string get_prev_wave_stat(int prev_wave_num)
         oss << outputs[i];
     }
     return oss.str();
+}
+
+Time get_readable_time(Time time)
+{
+    while (time.time < 0) {
+        time.wave--;
+        time.time += NowTime(time.wave) - NowTime(time.wave + 1);
+    }
+    return time;
 }
