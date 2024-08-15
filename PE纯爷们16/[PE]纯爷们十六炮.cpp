@@ -92,36 +92,27 @@ Timeline Transition(int wavelength, std::string delayed, std::string activated, 
             }
         }
 
-        const std::string* next_state;
-        std::string intent;
-        if (NowTime(current_wave + 1) == INT_MIN) {
-            next_state = &delayed;
-            intent = "延迟";
-        }
-        else if (current_wave % 10 == 8) {
-            next_state = &finish;
-            intent = "收尾";
-        }
-        else if (!no_garg.empty() && level == Level::Variable && giga_count >= 50 && !zombie_exist(z->Type() == GIGA && z->Hp() > 1800)) {
-            next_state = &no_garg;
-            intent = "转快";
-        }
-        else {
-            next_state = &activated;
-            intent = "激活";
-        }
+        std::vector<std::pair<std::string, std::string>> choices = {{"激活", activated}, {"延迟", delayed}, {"转快", no_garg}, {"收尾", finish}};
+        int idx = 0;
+        if (NowTime(current_wave + 1) == INT_MIN)
+            idx = 1;
+        else if (!no_garg.empty() && level == Level::Variable && giga_count >= 50 && !zombie_exist(z->Type() == GIGA && z->Hp() > 1800))
+            idx = 2;
+        else if (current_wave % 10 == 8)
+            idx = 3;
 
-        if (states.contains(*next_state)) {
-            if (next_state == &delayed) {
-                OnWave(current_wave) states[*next_state];
-                state_record.add(std::format("w{} {}", current_wave, *next_state));
+        auto next_state = choices[idx].second;
+        if (states.contains(next_state)) {
+            if (idx == 1) {
+                OnWave(current_wave) states[next_state];
+                state_record.add(std::format("w{} {}", current_wave, next_state));
             }
             else {
-                OnWave(current_wave + 1) states[*next_state];
-                state_record.add(std::format("w{} {}", current_wave + 1, *next_state));
+                OnWave(current_wave + 1) states[next_state];
+                state_record.add(std::format("w{} {}", current_wave + 1, next_state));
             }
         } else {
-            logger.Error("状态转移失败: #->#", intent, *next_state);
+            logger.Error("状态转移失败: #->#", choices[idx].first, next_state);
         }
     };
 }
