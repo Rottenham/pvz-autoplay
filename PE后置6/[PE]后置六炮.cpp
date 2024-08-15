@@ -311,9 +311,7 @@ void on_fail()
 {
     logger.Debug(get_prev_wave_stat(3));
     logger.Debug("#", PP_record);
-    std::ostringstream oss;
-    for (auto& r : get_avoid_PV_rows()) oss << r << ",";
-    logger.Debug("躲撑杆行: #", oss.str());
+    logger.Debug("躲撑杆行: #", Concat(get_avoid_PV_rows()));
     if (PAUSE_ON_FAIL || DEMO) {
         logger.Error("游戏暂停.");
         SetAdvancedPause(true);

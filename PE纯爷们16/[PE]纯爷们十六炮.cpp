@@ -13,7 +13,7 @@ const std::vector<Grid> SAFE_COB_LIST = {{1, 5}, {2, 5}, {5, 5}, {6, 5}, {3, 7},
 const std::vector<Grid> UNSAFE_COB_LIST = {{1, 1}, {2, 1}, {5, 1}, {6, 1}};
 constexpr AutoplayMode MODE = AutoplayMode::SKIPTICK;
 constexpr int FLAG_GOAL = MODE == AutoplayMode::DEMO ? 50 : 10000;
-const std::vector<std::pair<int, int>> FIX_COB_THRES_BY_SUN = {{0, 160}, {4000, 260}};
+const std::vector<std::pair<int, int>> FIX_COB_THRES_BY_SUN = {{4000, 260}, {0, 160}};
 
 /**** 收集数据 ****/
 Logger<Console> logger;
@@ -33,14 +33,18 @@ Record state_record("状态");
 void pause();
 void sl();
 
-Coroutine fix_cob() {
-    std::vector<std::pair<int, Grid>> cobs_to_fix = {};
-    auto hp_thres = 0;
+int get_fix_cob_thres() {
     for (auto [sun, thres] : FIX_COB_THRES_BY_SUN)
         if (GetMainObject()->Sun() >= sun)
-            hp_thres = thres;
+            return thres;
+    throw "unreachable";
+}
+
+Coroutine fix_cob() {
+    std::vector<std::pair<int, Grid>> cobs_to_fix = {};
+    auto fix_cob_thres = get_fix_cob_thres();
     for (auto p : GetPlantPtrs(UNSAFE_COB_LIST, COB)) {
-        if (p->Hp() <= hp_thres) {
+        if (p->Hp() <= fix_cob_thres) {
             cobs_to_fix.push_back({p->Hp(), {p->Row() + 1, p->Col() + 1}});
         }
     }
@@ -55,10 +59,10 @@ Coroutine fix_cob() {
         for (auto [_, cob] : cobs_to_fix)
             cobManager.EraseFromList({{cob}});
         for (auto [hp, pos] : cobs_to_fix) {
-            co_await [=] { return GetMainObject()->SeedArray()[GetCardIndex(COB)].Cd() == 0 && IsSeedUsable(KERNEL) && GetMainObject()->Sun() >= 2000; };
+            co_await [=] { return NotInCD(COB) && NotInCD(KERNEL) && GetMainObject()->Sun() >= 2000; };
             auto [row, col] = pos;
             logger.Warning("更换#-#炮 (HP=#)", row, col, hp);
-            cob_fix_stat[std::to_string(hp)]++;
+            cob_fix_stat[hp]++;
             cob_fix_count++;
 
             auto new_cob_list = cobManager.GetList();
