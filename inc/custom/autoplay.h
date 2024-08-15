@@ -6,6 +6,7 @@
 
 #include "macro.h"
 #include "mod.h"
+#include "shared.h"
 
 namespace AutoplayInternal {
 
@@ -76,14 +77,16 @@ public:
     {
     }
 
-    int& operator[](const std::string& key)
+    template <typename T>
+    int& operator[](const T& key)
     {
-        return stats[key];
+        return stats[std::format("{}", key)];
     }
 
-    const int& operator[](const std::string& key) const
+    template <typename T>
+    const int& operator[](const T& key) const
     {
-        return stats.at(key);
+        return stats.at(std::format("{}", key));
     }
 
     Stat operator++(int)
@@ -95,20 +98,10 @@ public:
 
     std::string to_string() const
     {
-        std::ostringstream oss;
-        oss << name << "={";
-        bool first = true;
-        for (const auto& [key, value] : stats) {
-            if (first)
-                first = false;
-            else
-                oss << ", ";
-            if (key != "")
-                oss << key << ": ";
-            oss << value;
-        }
-        oss << "}";
-        return oss.str();
+        std::vector<std::string> elems;
+        for (const auto& [key, value] : stats)
+            elems.push_back(std::format("{}: {}", key, value));
+        return std::format("{}={{{}}}", name, Concat(elems, ", "));
     }
 
     int val() const
@@ -139,12 +132,13 @@ public:
     {
     }
 
-    void add(std::string record)
+    template <typename T>
+    void add(const T& record)
     {
         if (records.size() == max_record_num) {
             records.pop_front();
         }
-        records.push_back(record);
+        records.push_back(std::format("{}", record));
     }
 
     void clear()
@@ -154,18 +148,7 @@ public:
 
     std::string to_string() const
     {
-        std::ostringstream oss;
-        oss << name << "=[";
-        bool first = true;
-        for (const auto& record : records) {
-            if (first)
-                first = false;
-            else
-                oss << ", ";
-            oss << record;
-        }
-        oss << "]";
-        return oss.str();
+        return std::format("{}=[{}]", name, Concat(records, ", "));
     }
 
 private:
@@ -229,14 +212,7 @@ std::string get_prev_wave_stat(int prev_wave_num)
         outputs.push_back(std::format("w{} 共{}cs", w, NowTime(w) - NowTime(w + 1)));
     }
     std::reverse(outputs.begin(), outputs.end());
-
-    std::ostringstream oss;
-    for (size_t i = 0; i < outputs.size(); i++) {
-        if (i != 0)
-            oss << "\n";
-        oss << outputs[i];
-    }
-    return oss.str();
+    return Concat(outputs, "\n");
 }
 
 Time get_readable_time(Time time)

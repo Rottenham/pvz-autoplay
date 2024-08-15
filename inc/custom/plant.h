@@ -14,3 +14,8 @@ std::vector<std::pair<Plant*, size_t>> GetPlantPtrsI(const std::vector<AGrid>& l
         res.push_back({indices[i], i});
     return res;
 }
+
+bool NotInCD(PlantType type)
+{
+    return GetMainObject()->SeedArray()[GetCardIndex(type)].Cd() == 0;
+}

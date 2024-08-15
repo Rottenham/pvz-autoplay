@@ -32,26 +32,26 @@ float hammer_rate(Zombie* zombie)
 
 };
 
-template <template <typename, typename...> class Container, typename T, typename... Args>
-std::string Concat(const Container<T, Args...>& container, const std::string& sep = ",")
+template <typename T>
+std::string Concat(const T& container, const std::string& separator = ",")
 {
     std::ostringstream oss;
     bool first = true;
-    for (const auto& val : container) {
-        if (first) {
-            first = false;
+    for (const auto& elem : container) {
+        if (!first) {
+            oss << separator;
         } else {
-            oss << sep;
+            first = false;
         }
-        oss << std::format("{}", val);
+        oss << std::format("{}", elem);
     }
     return oss.str();
 }
 
 template <typename T>
-bool Contains(const std::vector<T>& vec, const T& elem)
+bool Contains(const std::vector<T>& container, const T& elem)
 {
-    return std::find(vec.begin(), vec.end(), elem) != vec.end();
+    return std::find(container.begin(), container.end(), elem) != container.end();
 }
 
 void notify(const std::string& msg = ".")
