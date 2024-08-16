@@ -70,22 +70,23 @@ Timeline Transition(int wavelength, std::string delayed, std::string activated, 
     };
 }
 
-Timeline finish(const std::string& sequence, int phase, int total_phase) {
-    return At(-200) CoDo {
+Timeline finish(const std::string& sequence, int starting_phase, int total_phase) {
+    return At(-200) Do {
         int wave = NowWave(); // 8, 18
-        while (true) {
-            std::string intent = "";
-            if (NowWave(true) < wave + 2)
-                intent = std::format("w{}尚未刷新", wave + 2);
-            else if (zombie_exist(z->AtWave() + 1 <= wave + 1 && z->Type() == GIGA))
-                intent = "残留红";
-            else
-                break;
-            At(now + 200) states[std::format("{}{}", sequence, phase)];
-            state_record.add(std::format("{} w{} {}{}({})", get_readable_time(now), wave + 1, sequence, phase, intent));
-            if (++phase > total_phase) phase -= total_phase;
-            co_await (now + 601);
-        }
+        for (int i = 0; i < 3; i++)
+            At(now + 601 * i) Do {
+                std::string intent = "";
+                if (NowWave(true) < wave + 2)
+                    intent = std::format("w{}尚未刷新", wave + 2);
+                else if (zombie_exist(z->AtWave() + 1 <= wave + 1 && z->Type() == GIGA))
+                    intent = "残留红";
+                if (!intent.empty()) {
+                    int phase = starting_phase + i;
+                    if (phase > total_phase) phase -= total_phase;
+                    At(now + 200) states[std::format("{}{}", sequence, phase)];
+                    state_record.add(std::format("{} w{} {}{}({})", get_readable_time(now), wave + 1, sequence, phase, intent));
+                }
+            };
     };
 }
 
@@ -329,7 +330,7 @@ void sl() {
 OnExitFight({
     if (GetPvzBase()->GameUi() == AAsm::ZOMBIES_WON) {
         logger.Error("僵尸获胜");
-        sl();
+        pause();
     }
     if (GetPvzBase()->GameUi() != AAsm::LEVEL_INTRO && reload) {
         sl_count++;
