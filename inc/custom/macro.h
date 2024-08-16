@@ -138,6 +138,7 @@
 #define Coroutine ACoroutine
 #define EnterGame AEnterGame
 #define GetCardIndex AGetCardIndex
+#define GetInternalLogger AGetInternalLogger
 #define GetMainObject AGetMainObject
 #define GetPlantIndex AGetPlantIndex
 #define GetPlantIndices AGetPlantIndices
@@ -174,7 +175,6 @@
 #define ReloadMode AReloadMode
 #define RemovePlant ARemovePlant
 #define Script AScript
-#define SelectCards ASelectCards
 #define SetAdvancedPause ASetAdvancedPause
 #define SetGameSpeed ASetGameSpeed
 #define SetInternalLogger ASetInternalLogger
@@ -190,6 +190,7 @@
 #define Timeline ATimeline
 #define Zombie AZombie
 #define ZombieType AZombieType
+#define CobManager ACobManager
 
 // SimpleAvZ Macros
 #define CHERRY CHERRY_BOMB

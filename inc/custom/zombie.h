@@ -3,7 +3,7 @@
 #include "macro.h"
 #include "shared.h"
 
-#define zombie_filter(...) (AliveFilter<Zombie>([=](Zombie* z) { return __VA_ARGS__; }))
+#define zombie_filter(...) (AliveFilter<Zombie>([&](Zombie* z) { return __VA_ARGS__; }))
 #define zombie_exist(...) (!zombie_filter(__VA_ARGS__).Empty())
 #define zombie_count(...) (zombie_filter(__VA_ARGS__).Count())
 
@@ -31,3 +31,39 @@ void kill_all_zombies()
         z.State() = 3;
     }
 }
+
+const std::array<std::string, 33> ZOMBIE_NAME = {
+    "普僵",
+    "旗帜",
+    "路障",
+    "撑杆",
+    "铁桶",
+    "读报",
+    "铁门",
+    "橄榄",
+    "舞王",
+    "伴舞",
+    "鸭子",
+    "潜水",
+    "冰车",
+    "雪橇",
+    "海豚",
+    "小丑",
+    "气球",
+    "矿工",
+    "跳跳",
+    "雪人",
+    "蹦极",
+    "扶梯",
+    "投篮",
+    "白眼",
+    "小鬼",
+    "僵博",
+    "豌豆僵尸",
+    "坚果僵尸",
+    "辣椒僵尸",
+    "机枪僵尸",
+    "窝瓜僵尸",
+    "高坚果僵尸",
+    "红眼",
+};
